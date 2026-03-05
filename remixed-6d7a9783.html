@@ -1,0 +1,1151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TRAFFIK — Live Urban Pulse</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --red: #FF2D20;
+    --amber: #FFB800;
+    --green: #00E87A;
+    --bg: #0A0A0A;
+    --surface: #111111;
+    --surface2: #1A1A1A;
+    --text: #F0F0F0;
+    --muted: #666;
+    --grid: rgba(255,255,255,0.03);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* Custom Cursor */
+  .cursor {
+    position: fixed;
+    width: 12px; height: 12px;
+    background: var(--amber);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate(-50%, -50%);
+    transition: transform 0.1s, width 0.2s, height 0.2s, background 0.2s;
+    mix-blend-mode: difference;
+  }
+  .cursor-ring {
+    position: fixed;
+    width: 40px; height: 40px;
+    border: 1px solid rgba(255,184,0,0.4);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9998;
+    transform: translate(-50%, -50%);
+    transition: all 0.15s ease-out;
+  }
+
+  /* Grid Background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 3rem;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    backdrop-filter: blur(20px);
+    background: rgba(10,10,10,0.8);
+  }
+
+  .logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem;
+    letter-spacing: 0.1em;
+    color: var(--amber);
+  }
+  .logo span { color: var(--text); }
+
+  .nav-status {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .live-dot {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--green);
+  }
+  .live-dot::before {
+    content: '';
+    width: 7px; height: 7px;
+    background: var(--green);
+    border-radius: 50%;
+    animation: pulse 1.5s infinite;
+    box-shadow: 0 0 10px var(--green);
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.8); }
+  }
+
+  /* HERO */
+  .hero {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 8rem 3rem 4rem;
+    overflow: hidden;
+  }
+
+  .hero-eyebrow {
+    font-size: 0.7rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-bottom: 1.5rem;
+    animation: fadeUp 0.8s ease both;
+  }
+
+  .hero-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(6rem, 14vw, 14rem);
+    line-height: 0.9;
+    letter-spacing: -0.02em;
+    animation: fadeUp 0.8s 0.1s ease both;
+  }
+
+  .hero-title .outline {
+    -webkit-text-stroke: 1px rgba(255,255,255,0.2);
+    color: transparent;
+  }
+
+  .hero-title .accent { color: var(--amber); }
+
+  .hero-sub {
+    max-width: 500px;
+    font-size: 0.85rem;
+    line-height: 1.7;
+    color: var(--muted);
+    margin-top: 2rem;
+    animation: fadeUp 0.8s 0.2s ease both;
+  }
+
+  .hero-cta {
+    display: flex;
+    gap: 1rem;
+    margin-top: 3rem;
+    animation: fadeUp 0.8s 0.3s ease both;
+  }
+
+  .btn {
+    padding: 0.9rem 2.5rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    text-decoration: none;
+    border: none;
+    cursor: none;
+    transition: all 0.2s;
+  }
+
+  .btn-primary {
+    background: var(--amber);
+    color: #000;
+    font-weight: 500;
+  }
+  .btn-primary:hover { background: #fff; }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid rgba(255,255,255,0.15);
+  }
+  .btn-ghost:hover { border-color: var(--amber); color: var(--amber); }
+
+  /* Road Animation */
+  .road-visual {
+    position: absolute;
+    right: 0; top: 0; bottom: 0;
+    width: 50%;
+    overflow: hidden;
+  }
+
+  .road {
+    position: absolute;
+    right: 5%;
+    top: 0; bottom: 0;
+    width: 220px;
+    background: #151515;
+    border-left: 3px solid rgba(255,255,255,0.05);
+    border-right: 3px solid rgba(255,255,255,0.05);
+  }
+
+  .road::before {
+    content: '';
+    position: absolute;
+    left: 50%; top: 0; bottom: 0;
+    width: 2px;
+    background: repeating-linear-gradient(
+      to bottom,
+      var(--amber) 0px,
+      var(--amber) 30px,
+      transparent 30px,
+      transparent 60px
+    );
+    animation: roadMove 1s linear infinite;
+  }
+
+  @keyframes roadMove {
+    from { background-position: 0 0; }
+    to { background-position: 0 60px; }
+  }
+
+  .car {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    animation: carMove linear infinite;
+  }
+
+  .car-body {
+    width: 40px;
+    height: 70px;
+    background: var(--surface2);
+    border-radius: 8px 8px 4px 4px;
+    position: relative;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .car-light-front {
+    position: absolute;
+    bottom: -4px;
+    width: 8px; height: 4px;
+    background: var(--amber);
+    border-radius: 2px;
+    box-shadow: 0 0 15px var(--amber), 0 0 40px rgba(255,184,0,0.4);
+  }
+  .car-light-front.left { left: 4px; }
+  .car-light-front.right { right: 4px; }
+
+  .car:nth-child(1) { animation: carMove 3s 0s linear infinite; left: 30%; }
+  .car:nth-child(2) { animation: carMove 4s 1s linear infinite; left: 65%; }
+  .car:nth-child(3) { animation: carMove 3.5s 0.5s linear infinite; left: 40%; }
+  .car:nth-child(4) { animation: carMove 5s 2s linear infinite; left: 55%; }
+
+  @keyframes carMove {
+    from { top: -80px; }
+    to { top: 110%; }
+  }
+
+  /* STATS TICKER */
+  .ticker {
+    background: var(--amber);
+    color: #000;
+    padding: 0.7rem 0;
+    overflow: hidden;
+    white-space: nowrap;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    font-weight: 500;
+    position: relative;
+    z-index: 2;
+  }
+
+  .ticker-inner {
+    display: inline-block;
+    animation: ticker 30s linear infinite;
+  }
+
+  .ticker-item {
+    display: inline-block;
+    margin-right: 4rem;
+  }
+  .ticker-item span { opacity: 0.6; margin-right: 0.5rem; }
+
+  @keyframes ticker {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+
+  /* DASHBOARD */
+  .dashboard {
+    position: relative;
+    z-index: 1;
+    padding: 5rem 3rem;
+  }
+
+  .section-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-bottom: 0.5rem;
+  }
+
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 3rem;
+  }
+
+  /* Traffic Light Cards */
+  .signal-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5px;
+    margin-bottom: 4rem;
+    background: rgba(255,255,255,0.04);
+  }
+
+  .signal-card {
+    background: var(--surface);
+    padding: 2.5rem 2rem;
+    position: relative;
+    overflow: hidden;
+    transition: background 0.2s;
+  }
+  .signal-card:hover { background: var(--surface2); }
+
+  .signal-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+
+  .signal-card.red::before { background: var(--red); box-shadow: 0 0 20px var(--red); }
+  .signal-card.amber::before { background: var(--amber); box-shadow: 0 0 20px var(--amber); }
+  .signal-card.green::before { background: var(--green); box-shadow: 0 0 20px var(--green); }
+
+  .signal-icon {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .signal-value {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 3.5rem;
+    line-height: 1;
+    margin-bottom: 0.3rem;
+  }
+
+  .signal-card.red .signal-value { color: var(--red); }
+  .signal-card.amber .signal-value { color: var(--amber); }
+  .signal-card.green .signal-value { color: var(--green); }
+
+  .signal-label {
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 1rem;
+  }
+
+  .signal-bar {
+    height: 2px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .signal-bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    animation: barFill 2s ease both;
+  }
+
+  .signal-card.red .signal-bar-fill { background: var(--red); }
+  .signal-card.amber .signal-bar-fill { background: var(--amber); }
+  .signal-card.green .signal-bar-fill { background: var(--green); }
+
+  @keyframes barFill {
+    from { width: 0; }
+  }
+
+  /* Road Map Visualization */
+  .road-map {
+    background: var(--surface);
+    padding: 3rem;
+    margin-bottom: 4rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .map-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    align-items: center;
+  }
+
+  .intersection {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1;
+    max-width: 380px;
+    margin: auto;
+  }
+
+  /* Intersection SVG */
+  .intersection-svg { width: 100%; height: 100%; }
+
+  .map-info h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.8rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
+  }
+
+  .map-info p {
+    font-size: 0.8rem;
+    line-height: 1.8;
+    color: var(--muted);
+    margin-bottom: 2rem;
+  }
+
+  .hotspot-list { list-style: none; }
+  .hotspot-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.9rem 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    font-size: 0.75rem;
+  }
+
+  .hotspot-item:last-child { border-bottom: none; }
+
+  .hotspot-name { color: var(--text); }
+  .hotspot-status {
+    padding: 0.2rem 0.7rem;
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    border-radius: 2px;
+  }
+
+  .status-heavy { background: rgba(255,45,32,0.15); color: var(--red); }
+  .status-moderate { background: rgba(255,184,0,0.15); color: var(--amber); }
+  .status-clear { background: rgba(0,232,122,0.15); color: var(--green); }
+
+  /* Traffic Tips */
+  .tips-section {
+    padding: 5rem 3rem;
+    background: var(--surface);
+    position: relative;
+    z-index: 1;
+  }
+
+  .tips-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5px;
+    background: rgba(255,255,255,0.04);
+    margin-top: 3rem;
+  }
+
+  .tip-card {
+    background: var(--bg);
+    padding: 2.5rem;
+    position: relative;
+  }
+
+  .tip-number {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 5rem;
+    line-height: 1;
+    color: rgba(255,255,255,0.04);
+    position: absolute;
+    top: 1rem; right: 1.5rem;
+  }
+
+  .tip-icon {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+  }
+
+  .tip-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 0.8rem;
+  }
+
+  .tip-text {
+    font-size: 0.78rem;
+    line-height: 1.7;
+    color: var(--muted);
+  }
+
+  /* Peak Hours Chart */
+  .chart-section {
+    position: relative;
+    z-index: 1;
+    padding: 5rem 3rem;
+  }
+
+  .chart-container {
+    background: var(--surface);
+    padding: 3rem;
+  }
+
+  .chart-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+    height: 160px;
+    margin-top: 2rem;
+  }
+
+  .chart-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .chart-bar {
+    width: 100%;
+    border-radius: 2px 2px 0 0;
+    transition: opacity 0.2s;
+    animation: barRise 1s ease both;
+    position: relative;
+  }
+
+  .chart-bar:hover::after {
+    content: attr(data-val);
+    position: absolute;
+    top: -25px; left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.6rem;
+    color: var(--amber);
+    white-space: nowrap;
+  }
+
+  @keyframes barRise {
+    from { transform: scaleY(0); transform-origin: bottom; }
+    to { transform: scaleY(1); transform-origin: bottom; }
+  }
+
+  .chart-label {
+    font-size: 0.6rem;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+  }
+
+  /* News Feed */
+  .news-section {
+    position: relative;
+    z-index: 1;
+    padding: 5rem 3rem;
+    background: var(--surface);
+  }
+
+  .news-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 3rem;
+    margin-top: 3rem;
+  }
+
+  .news-main {
+    border-top: 2px solid var(--amber);
+    padding-top: 2rem;
+  }
+
+  .news-tag {
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-bottom: 0.8rem;
+  }
+
+  .news-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 1rem;
+  }
+
+  .news-body {
+    font-size: 0.8rem;
+    line-height: 1.8;
+    color: var(--muted);
+    margin-bottom: 1.5rem;
+  }
+
+  .news-meta {
+    font-size: 0.65rem;
+    color: rgba(255,255,255,0.2);
+    letter-spacing: 0.1em;
+  }
+
+  .news-side { display: flex; flex-direction: column; gap: 0; }
+
+  .news-mini {
+    padding: 1.5rem 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+
+  .news-mini:first-child { border-top: 2px solid rgba(255,255,255,0.1); }
+
+  .news-mini-tag {
+    font-size: 0.55rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+  .news-mini-tag.red { color: var(--red); }
+  .news-mini-tag.green { color: var(--green); }
+  .news-mini-tag.amber { color: var(--amber); }
+
+  .news-mini-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    line-height: 1.3;
+    margin-bottom: 0.4rem;
+  }
+
+  .news-mini-meta {
+    font-size: 0.6rem;
+    color: rgba(255,255,255,0.2);
+  }
+
+  /* Footer */
+  footer {
+    position: relative;
+    z-index: 1;
+    padding: 3rem;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .footer-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.5rem;
+    color: var(--amber);
+  }
+
+  .footer-text {
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--amber); }
+
+  @media (max-width: 768px) {
+    nav { padding: 1rem 1.5rem; }
+    .hero { padding: 7rem 1.5rem 3rem; }
+    .road-visual { display: none; }
+    .dashboard, .tips-section, .chart-section, .news-section { padding: 3rem 1.5rem; }
+    .map-grid { grid-template-columns: 1fr; }
+    .news-grid { grid-template-columns: 1fr; }
+    footer { flex-direction: column; gap: 1rem; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">TRAF<span>FIK</span></div>
+  <div class="nav-status">
+    <div class="live-dot">Live Feed</div>
+    <span>03:14:22 UTC</span>
+    <span>City Network</span>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div style="position:relative; z-index:2; max-width: 50%;">
+    <div class="hero-eyebrow">Urban Traffic Intelligence System</div>
+    <h1 class="hero-title">
+      ROAD<br>
+      <span class="outline">PULSE</span><br>
+      <span class="accent">LIVE</span>
+    </h1>
+    <p class="hero-sub">
+      Real-time traffic monitoring, congestion analytics, and smart routing intelligence for the modern urban network. Know before you go.
+    </p>
+    <div class="hero-cta">
+      <a href="#dashboard" class="btn btn-primary">View Dashboard</a>
+      <a href="#alerts" class="btn btn-ghost">Live Alerts</a>
+    </div>
+  </div>
+
+  <div class="road-visual">
+    <div class="road">
+      <div class="car">
+        <div class="car-body">
+          <div class="car-light-front left"></div>
+          <div class="car-light-front right"></div>
+        </div>
+      </div>
+      <div class="car">
+        <div class="car-body" style="background:#1e1e1e;">
+          <div class="car-light-front left"></div>
+          <div class="car-light-front right"></div>
+        </div>
+      </div>
+      <div class="car">
+        <div class="car-body" style="background:#161616;">
+          <div class="car-light-front left"></div>
+          <div class="car-light-front right"></div>
+        </div>
+      </div>
+      <div class="car">
+        <div class="car-body" style="background:#222;">
+          <div class="car-light-front left"></div>
+          <div class="car-light-front right"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TICKER -->
+<div class="ticker">
+  <div class="ticker-inner" id="ticker">
+    <span class="ticker-item"><span>🔴</span> I-405 North — Heavy congestion, 2.1 mi delay</span>
+    <span class="ticker-item"><span>🟡</span> Main St & 5th Ave — Moderate, signal timing adjusted</span>
+    <span class="ticker-item"><span>🟢</span> Highway 101 South — Clear, 65 mph average</span>
+    <span class="ticker-item"><span>🔴</span> Downtown Loop — Incident reported, avoid left lane</span>
+    <span class="ticker-item"><span>🟡</span> Bridge Rd — Construction zone, reduced to 1 lane</span>
+    <span class="ticker-item"><span>🟢</span> Airport Expressway — All clear, normal flow</span>
+    <span class="ticker-item"><span>🔴</span> Central Ave — Accident at mile marker 14, 35 min delay</span>
+    <span class="ticker-item"><span>🟡</span> Riverside Drive — School zone active, 25 mph enforced</span>
+    <!-- Duplicate for seamless loop -->
+    <span class="ticker-item"><span>🔴</span> I-405 North — Heavy congestion, 2.1 mi delay</span>
+    <span class="ticker-item"><span>🟡</span> Main St & 5th Ave — Moderate, signal timing adjusted</span>
+    <span class="ticker-item"><span>🟢</span> Highway 101 South — Clear, 65 mph average</span>
+    <span class="ticker-item"><span>🔴</span> Downtown Loop — Incident reported, avoid left lane</span>
+    <span class="ticker-item"><span>🟡</span> Bridge Rd — Construction zone, reduced to 1 lane</span>
+    <span class="ticker-item"><span>🟢</span> Airport Expressway — All clear, normal flow</span>
+    <span class="ticker-item"><span>🔴</span> Central Ave — Accident at mile marker 14, 35 min delay</span>
+    <span class="ticker-item"><span>🟡</span> Riverside Drive — School zone active, 25 mph enforced</span>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<section class="dashboard" id="dashboard">
+  <div class="section-label">Real-Time Metrics</div>
+  <h2 class="section-title">Traffic Conditions Now</h2>
+
+  <div class="signal-grid">
+    <div class="signal-card red">
+      <div class="signal-icon">🚨</div>
+      <div class="signal-value" id="congested">14</div>
+      <div class="signal-label">Congested Zones</div>
+      <div class="signal-bar"><div class="signal-bar-fill" style="width:78%"></div></div>
+    </div>
+    <div class="signal-card amber">
+      <div class="signal-icon">⚠️</div>
+      <div class="signal-value" id="moderate">31</div>
+      <div class="signal-label">Moderate Zones</div>
+      <div class="signal-bar"><div class="signal-bar-fill" style="width:55%"></div></div>
+    </div>
+    <div class="signal-card green">
+      <div class="signal-icon">✅</div>
+      <div class="signal-value" id="clear">89</div>
+      <div class="signal-label">Clear Zones</div>
+      <div class="signal-bar"><div class="signal-bar-fill" style="width:89%"></div></div>
+    </div>
+    <div class="signal-card amber">
+      <div class="signal-icon">🚗</div>
+      <div class="signal-value" id="vehicles">24K</div>
+      <div class="signal-label">Vehicles Tracked</div>
+      <div class="signal-bar"><div class="signal-bar-fill" style="width:62%"></div></div>
+    </div>
+    <div class="signal-card red">
+      <div class="signal-icon">⏱</div>
+      <div class="signal-value" id="delay">38</div>
+      <div class="signal-label">Avg Delay (Min)</div>
+      <div class="signal-bar"><div class="signal-bar-fill" style="width:45%"></div></div>
+    </div>
+    <div class="signal-card green">
+      <div class="signal-icon">🛣️</div>
+      <div class="signal-value" id="speed">41</div>
+      <div class="signal-label">Avg Speed (MPH)</div>
+      <div class="signal-bar"><div class="signal-bar-fill" style="width:41%"></div></div>
+    </div>
+  </div>
+
+  <!-- Intersection Map -->
+  <div class="road-map" id="alerts">
+    <div class="map-grid">
+      <div>
+        <div class="section-label" style="margin-bottom:0.3rem">Intersection Intelligence</div>
+        <h3 style="font-family:'Syne',sans-serif; font-size:1.8rem; font-weight:800; margin-bottom:1.5rem;">Network Hotspots</h3>
+
+        <svg class="intersection-svg" viewBox="0 0 380 380" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Background -->
+          <rect width="380" height="380" fill="#111"/>
+
+          <!-- Grid lines -->
+          <line x1="0" y1="60" x2="380" y2="60" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+          <line x1="0" y1="120" x2="380" y2="120" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+          <line x1="0" y1="190" x2="380" y2="190" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+          <line x1="0" y1="260" x2="380" y2="260" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+          <line x1="0" y1="320" x2="380" y2="320" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+
+          <!-- Road network -->
+          <!-- Horizontal roads -->
+          <rect x="0" y="165" width="380" height="50" fill="#1a1a1a"/>
+          <!-- Vertical roads -->
+          <rect x="165" y="0" width="50" height="380" fill="#1a1a1a"/>
+          <!-- Second horizontal -->
+          <rect x="0" y="80" width="140" height="35" fill="#161616"/>
+          <rect x="240" y="80" width="140" height="35" fill="#161616"/>
+          <!-- Second vertical -->
+          <rect x="80" y="240" width="35" height="140" fill="#161616"/>
+          <rect x="265" y="0" width="35" height="140" fill="#161616"/>
+
+          <!-- Road markings center vertical -->
+          <line x1="190" y1="0" x2="190" y2="155" stroke="#FFB800" stroke-width="1.5" stroke-dasharray="20 15"/>
+          <line x1="190" y1="225" x2="190" y2="380" stroke="#FFB800" stroke-width="1.5" stroke-dasharray="20 15"/>
+          <!-- Road markings center horizontal -->
+          <line x1="0" y1="190" x2="155" y2="190" stroke="#FFB800" stroke-width="1.5" stroke-dasharray="20 15"/>
+          <line x1="225" y1="190" x2="380" y2="190" stroke="#FFB800" stroke-width="1.5" stroke-dasharray="20 15"/>
+
+          <!-- Intersection box -->
+          <rect x="165" y="165" width="50" height="50" fill="#222"/>
+          <rect x="165" y="165" width="50" height="50" fill="none" stroke="#FFB800" stroke-width="1" stroke-dasharray="4 4"/>
+
+          <!-- Traffic signals (circles) -->
+          <!-- Main intersection signals -->
+          <circle cx="155" cy="155" r="8" fill="#FF2D20" opacity="0.9">
+            <animate attributeName="opacity" values="0.9;0.3;0.9" dur="3s" repeatCount="indefinite"/>
+          </circle>
+          <circle cx="225" cy="155" r="8" fill="#FF2D20" opacity="0.9">
+            <animate attributeName="opacity" values="0.9;0.3;0.9" dur="3s" begin="1s" repeatCount="indefinite"/>
+          </circle>
+          <circle cx="155" cy="225" r="8" fill="#00E87A" opacity="0.9">
+            <animate attributeName="opacity" values="0.9;0.3;0.9" dur="2s" repeatCount="indefinite"/>
+          </circle>
+          <circle cx="225" cy="225" r="8" fill="#FFB800" opacity="0.9">
+            <animate attributeName="opacity" values="0.9;0.3;0.9" dur="2.5s" begin="0.5s" repeatCount="indefinite"/>
+          </circle>
+
+          <!-- Moving vehicles (animated) -->
+          <!-- Cars on horizontal road going right -->
+          <rect rx="3" ry="3" width="22" height="12" fill="#2a2a2a" stroke="rgba(255,184,0,0.4)" stroke-width="0.5">
+            <animate attributeName="x" values="-30;400" dur="6s" repeatCount="indefinite"/>
+            <animateTransform attributeName="transform" type="translate" values="0,168" additive="sum"/>
+          </rect>
+          <rect rx="3" ry="3" width="22" height="12" fill="#222" stroke="rgba(255,184,0,0.3)" stroke-width="0.5">
+            <animate attributeName="x" values="-30;400" dur="4.5s" begin="1.5s" repeatCount="indefinite"/>
+            <animateTransform attributeName="transform" type="translate" values="0,180" additive="sum"/>
+          </rect>
+
+          <!-- Cars going left -->
+          <rect rx="3" ry="3" width="22" height="12" fill="#333" stroke="rgba(255,45,32,0.4)" stroke-width="0.5">
+            <animate attributeName="x" values="400;-30" dur="7s" repeatCount="indefinite"/>
+            <animateTransform attributeName="transform" type="translate" values="0,200" additive="sum"/>
+          </rect>
+
+          <!-- Cars on vertical road going down -->
+          <rect rx="3" ry="3" width="12" height="22" fill="#2a2a2a" stroke="rgba(255,184,0,0.4)" stroke-width="0.5">
+            <animate attributeName="y" values="-30;400" dur="5s" begin="0.8s" repeatCount="indefinite"/>
+            <animateTransform attributeName="transform" type="translate" values="168,0" additive="sum"/>
+          </rect>
+          <rect rx="3" ry="3" width="12" height="22" fill="#222" stroke="rgba(0,232,122,0.4)" stroke-width="0.5">
+            <animate attributeName="y" values="-30;400" dur="6.5s" begin="2s" repeatCount="indefinite"/>
+            <animateTransform attributeName="transform" type="translate" values="182,0" additive="sum"/>
+          </rect>
+
+          <!-- Label -->
+          <text x="10" y="25" fill="rgba(255,255,255,0.2)" font-size="9" font-family="monospace" letter-spacing="2">DOWNTOWN CORE — LIVE</text>
+        </svg>
+      </div>
+
+      <div class="map-info">
+        <h3>Traffic Hotspot Index</h3>
+        <p>Current congestion levels across key arterials and intersections. Updated every 30 seconds via sensor network.</p>
+
+        <ul class="hotspot-list">
+          <li class="hotspot-item">
+            <span class="hotspot-name">I-405 & Exit 12</span>
+            <span class="hotspot-status status-heavy">Heavy</span>
+          </li>
+          <li class="hotspot-item">
+            <span class="hotspot-name">5th Ave & Main St</span>
+            <span class="hotspot-status status-moderate">Moderate</span>
+          </li>
+          <li class="hotspot-item">
+            <span class="hotspot-name">Downtown Loop E</span>
+            <span class="hotspot-status status-heavy">Heavy</span>
+          </li>
+          <li class="hotspot-item">
+            <span class="hotspot-name">Airport Expressway</span>
+            <span class="hotspot-status status-clear">Clear</span>
+          </li>
+          <li class="hotspot-item">
+            <span class="hotspot-name">Bridge Rd N</span>
+            <span class="hotspot-status status-moderate">Moderate</span>
+          </li>
+          <li class="hotspot-item">
+            <span class="hotspot-name">Highway 101 South</span>
+            <span class="hotspot-status status-clear">Clear</span>
+          </li>
+          <li class="hotspot-item">
+            <span class="hotspot-name">Central Ave Corridor</span>
+            <span class="hotspot-status status-heavy">Heavy</span>
+          </li>
+          <li class="hotspot-item">
+            <span class="hotspot-name">Riverside Dr East</span>
+            <span class="hotspot-status status-clear">Clear</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PEAK HOURS CHART -->
+<section class="chart-section">
+  <div class="section-label">Traffic Flow Analysis</div>
+  <h2 class="section-title">Peak Hour Volume</h2>
+
+  <div class="chart-container">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+      <span style="font-size:0.7rem; color:var(--muted); letter-spacing:0.1em;">VEHICLES PER HOUR (THOUSANDS) — TODAY</span>
+      <div style="display:flex; gap:1.5rem; font-size:0.65rem;">
+        <span style="color:var(--red);">■ Heavy</span>
+        <span style="color:var(--amber);">■ Moderate</span>
+        <span style="color:var(--green);">■ Light</span>
+      </div>
+    </div>
+
+    <div class="chart-bars">
+      <div class="chart-col">
+        <div class="chart-bar" style="height:25%; background:var(--green); animation-delay:0.1s" data-val="4.2K"></div>
+        <div class="chart-label">12AM</div>
+      </div>
+      <div class="chart-col">
+        <div class="chart-bar" style="height:15%; background:var(--green); animation-delay:0.15s" data-val="2.1K"></div>
+        <div class="chart-label">2AM</div>
+      </div>
+      <div class="chart-col">
+        <div class="chart-bar" style="height:12%; background:var(--green); animation-delay:0.2s" data-val="1.8K"></div>
+        <div class="chart-label">4AM</div>
+      </div>
+      <div class="chart-col">
+        <div class="chart-bar" style="height:35%; background:var(--amber); animation-delay:0.25s" data-val="6.1K"></div>
+        <div class="chart-label">6AM</div>
+      </div>
+      <div class="chart-col">
+        <div class="chart-bar" style="height:90%; background:var(--red); animation-delay:0.3s" data-val="18.4K"></div>
+        <div class="chart-label">8AM</div>
+      </div>
+      <div class="chart-col">
+        <div class="chart-bar" style="height:70%; background:var(--amber); animation-delay:0.35s" data-val="13.2K"></div>
+        <div class="chart-label">10AM</div>
+      </div>
+      <div class="chart-col">
+        <div class="chart-bar" style="height:60%; background:var(--amber); animation-delay:0.4s" data-val="11.8K"></div>
+        <div class="chart-label">12PM</div>
+      </div>
+      <div class="chart-col">
+        <div class="chart-bar" style="height:55%; background:var(--amber); animation-delay:0.45s" data-val="10.4K"></div>
+        <div class="chart-label">2PM</div>
+      </div>
+      <div class="chart-col">
+        <div class="chart-bar" style="height:75%; background:var(--red); animation-delay:0.5s" data-val="14.9K"></div>
+        <div class="chart-label">4PM</div>
+      </div>
+      <div class="chart-col">
+        <div class="chart-bar" style="height:95%; background:var(--red); animation-delay:0.55s" data-val="19.1K"></div>
+        <div class="chart-label">6PM</div>
+      </div>
+      <div class="chart-col">
+        <div class="chart-bar" style="height:65%; background:var(--amber); animation-delay:0.6s" data-val="12.3K"></div>
+        <div class="chart-label">8PM</div>
+      </div>
+      <div class="chart-col">
+        <div class="chart-bar" style="height:40%; background:var(--green); animation-delay:0.65s" data-val="7.6K"></div>
+        <div class="chart-label">10PM</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TIPS -->
+<section class="tips-section">
+  <div class="section-label">Smart Driving Guide</div>
+  <h2 class="section-title">Navigate Smarter</h2>
+
+  <div class="tips-grid">
+    <div class="tip-card">
+      <div class="tip-number">01</div>
+      <div class="tip-icon">⏰</div>
+      <div class="tip-title">Avoid Peak Hours</div>
+      <div class="tip-text">The heaviest congestion occurs 7–9 AM and 5–7 PM. Shifting your commute by even 30 minutes can reduce travel time by up to 40%.</div>
+    </div>
+    <div class="tip-card">
+      <div class="tip-number">02</div>
+      <div class="tip-icon">🗺️</div>
+      <div class="tip-title">Use Alternate Routes</div>
+      <div class="tip-text">When primary corridors are red, secondary streets often flow freely. Know at least two alternative routes for your regular commute.</div>
+    </div>
+    <div class="tip-card">
+      <div class="tip-number">03</div>
+      <div class="tip-icon">📡</div>
+      <div class="tip-title">Check Before You Go</div>
+      <div class="tip-text">Monitor live traffic feeds 15 minutes before departure. Real-time data changes rapidly — a clear road can congest within minutes of an incident.</div>
+    </div>
+    <div class="tip-card">
+      <div class="tip-number">04</div>
+      <div class="tip-icon">🚌</div>
+      <div class="tip-title">Consider Transit</div>
+      <div class="tip-text">During red alert days, public transit bypasses surface congestion entirely. A bus or rail trip can save 20–45 minutes versus driving.</div>
+    </div>
+    <div class="tip-card">
+      <div class="tip-number">05</div>
+      <div class="tip-icon">🌧️</div>
+      <div class="tip-title">Weather Factor</div>
+      <div class="tip-text">Rain increases accident rates by 34% and reduces average speeds by 15 mph. Add extra buffer time on wet or foggy days.</div>
+    </div>
+    <div class="tip-card">
+      <div class="tip-number">06</div>
+      <div class="tip-icon">🔋</div>
+      <div class="tip-title">Eco-Driving</div>
+      <div class="tip-text">Smooth acceleration and anticipating signals improves fuel economy by up to 25% and reduces brake wear — saving money and reducing emissions.</div>
+    </div>
+  </div>
+</section>
+
+<!-- NEWS -->
+<section class="news-section">
+  <div class="section-label">Traffic Alerts & Updates</div>
+  <h2 class="section-title">Latest Reports</h2>
+
+  <div class="news-grid">
+    <div class="news-main">
+      <div class="news-tag">🔴 Major Incident</div>
+      <h3 class="news-title">Multi-Vehicle Collision on Central Avenue Causes 45-Minute Backup</h3>
+      <p class="news-body">Emergency services are responding to a three-vehicle accident at mile marker 14 on Central Avenue heading eastbound. Two lanes are currently closed while crews clear debris and assist injured parties. Drivers are urged to use Riverside Drive as an alternate. The incident was first reported at 07:42 and clearance is estimated by 09:15.</p>
+      <div class="news-meta">07:42 UTC · Central Ave, Mile 14 · Emergency Response Active</div>
+    </div>
+
+    <div class="news-side">
+      <div class="news-mini">
+        <div class="news-mini-tag amber">⚠️ Construction</div>
+        <div class="news-mini-title">Bridge Road Lane Reduction Extended Through Friday</div>
+        <div class="news-mini-meta">06:00 UTC · Bridge Rd North</div>
+      </div>
+      <div class="news-mini">
+        <div class="news-mini-tag green">✅ Resolved</div>
+        <div class="news-mini-title">Airport Expressway Fully Reopened After Morning Maintenance</div>
+        <div class="news-mini-meta">05:30 UTC · Airport Expressway</div>
+      </div>
+      <div class="news-mini">
+        <div class="news-mini-tag red">🔴 Alert</div>
+        <div class="news-mini-title">I-405 On-Ramp Closure Causing Overflow to Surface Streets</div>
+        <div class="news-mini-meta">07:15 UTC · I-405 Exit 12</div>
+      </div>
+      <div class="news-mini">
+        <div class="news-mini-tag amber">📢 Notice</div>
+        <div class="news-mini-title">Downtown Special Event: Expect Parking Restrictions Until 10PM</div>
+        <div class="news-mini-meta">08:00 UTC · Downtown Core</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">TRAFFIK</div>
+  <div class="footer-text">URBAN TRAFFIC INTELLIGENCE · LIVE DATA · ALL RIGHTS RESERVED © 2026</div>
+  <div class="footer-text">LAST SYNC: <span id="syncTime">--:--:--</span> UTC</div>
+</footer>
+
+<script>
+  // Custom cursor
+  const cursor = document.getElementById('cursor');
+  const ring = document.getElementById('cursorRing');
+  document.addEventListener('mousemove', e => {
+    cursor.style.left = e.clientX + 'px';
+    cursor.style.top = e.clientY + 'px';
+    setTimeout(() => {
+      ring.style.left = e.clientX + 'px';
+      ring.style.top = e.clientY + 'px';
+    }, 60);
+  });
+
+  // Live clock
+  function updateClock() {
+    const now = new Date();
+    const t = now.toISOString().split('T')[1].split('.')[0];
+    document.getElementById('syncTime').textContent = t;
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+
+  // Live-updating stats
+  function randomFluctuate(base, range) {
+    return Math.round(base + (Math.random() - 0.5) * range);
+  }
+
+  setInterval(() => {
+    document.getElementById('congested').textContent = randomFluctuate(14, 4);
+    document.getElementById('moderate').textContent = randomFluctuate(31, 6);
+    document.getElementById('clear').textContent = randomFluctuate(89, 8);
+    document.getElementById('delay').textContent = randomFluctuate(38, 5);
+    document.getElementById('speed').textContent = randomFluctuate(41, 4);
+  }, 3000);
+</script>
+
+</body>
+</html>
